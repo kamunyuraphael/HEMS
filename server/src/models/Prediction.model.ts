@@ -1,3 +1,4 @@
+// Linear regression uotput and anomaly detection results stored in MongoDB for user access and historical analysis.
 import { Schema, model, Document } from 'mongoose';
 
 interface IPrediction extends Document {

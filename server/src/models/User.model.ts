@@ -1,3 +1,4 @@
+// User profiles & budget settings stored in MongoDB for authentication and personalized experience.
 import { Schema, model, Document } from 'mongoose';
 
 interface IUser extends Document {

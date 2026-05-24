@@ -1,0 +1,1 @@
+// Reusable Recharts/Chart.js canvas component

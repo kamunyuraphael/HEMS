@@ -1,3 +1,4 @@
+// Bootstraps db connection, attaches Socket.io, listens on the specified port, and logs server status. The main entry point for the HEMS backend server, responsible for initializing the Express application and starting the server.
 import express, { type Application } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';

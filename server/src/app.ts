@@ -1,0 +1,2 @@
+// Express server initialization & core middleware setup, including CORS, body parsing, and static file serving for the HEMS dashboard frontend. 
+// Also integrates Socket.io for real-time communication and sets up API routes for telemetry data handling and ML model interactions.

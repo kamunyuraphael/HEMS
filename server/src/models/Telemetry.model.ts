@@ -1,3 +1,4 @@
+// 10s interval aggregate/disaggregated telemetry data stored in MongoDB for historical analysis and ML model training.
 import { Schema, model, Document } from 'mongoose';
 
 // Interface for type safety

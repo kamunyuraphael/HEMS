@@ -1,0 +1,1 @@
+// Holds global open Socket.io-client stream context
