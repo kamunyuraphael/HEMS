@@ -9,25 +9,19 @@ import type { ServerToClientEvents, ClientToServerEvents } from "./types/SocketE
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 const server = http.createServer(app);
 
-// 1. Instantiate Server with Event Type Enforcements
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   cors: {
-    origin: process.env.ALLOWED_ORIGINS || "*",
-    methods: ["GET", "POST"],
+    origin: process.env.ALLOWED_ORIGINS || '*',
+    methods: ['GET', 'POST'],
   },
 });
 
-// 2. Register instance with global socket manager utility
 initIO(io);
 
-// 3. Fire up database connection
-connectDB();
-
-// 4. Handle Incoming Event Registrations
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   logger.info(`🔌 Connection handshake opened: ${socket.id}`);
 
   // Dynamic Room Subscription matching the User ID

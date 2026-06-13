@@ -12,13 +12,17 @@ interface AuthRequest extends Request {
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1]; // Expect "Bearer <token>"
+    const token = req.headers.authorization?.split(' ')[1]; // Expect "Bearer <token>"
 
     if (!token) {
-      return res.status(401).json({ error: "No token provided" });
+      return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: 'Server configuration error: JWT_SECRET is not configured' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
 
     // Attach user ID to request object
     const authReq = req as AuthRequest;

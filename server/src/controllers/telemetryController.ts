@@ -2,9 +2,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
 import { Telemetry } from "../models/Telemetry.js";
+import { Device } from "../models/Devices.js";
 import type { ITelemetryData } from "../types/Telemetry.d.js";
 
-// Temporary extendable interface if not yet defined globally in types folder
 interface AuthenticateRequest extends Request {
   user?: { id: string };
 }
@@ -66,10 +66,16 @@ export const addTelemetry = async (
     // Capture incoming structural metrics safely from body
     const { device, watts, kWh, interval } = req.body;
 
+    const existingDevice = await Device.findById(device);
+    if (!existingDevice || existingDevice.owner.toString() !== userId) {
+      res.status(403).json({ success: false, error: "Device does not belong to authenticated user" });
+      return;
+    }
+
     const telemetry = new Telemetry({
       device: new Types.ObjectId(device),
       user: new Types.ObjectId(userId),
-      watts: watts || 0, // Fallback if processing pre-aggregated totals
+      watts: watts ?? 0,
       kWh,
       interval: (interval as ITelemetryData["interval"]) || "raw",
     });

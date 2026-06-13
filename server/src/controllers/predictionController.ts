@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { getPredictionsByUser, ingestPrediction } from "../services/predictionService.js";
 import type { IPrediction } from "../types/Prediction.d.js";
 
@@ -6,22 +6,22 @@ interface AuthRequest extends Request {
   user?: { id: string };
 }
 
-export const getPredictions = async (req: AuthRequest, res: Response) => {
+export const getPredictions = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
     const type = typeof req.query.type === "string" ? req.query.type : undefined;
     const predictions = await getPredictionsByUser(userId, type as IPrediction["type"] | undefined);
-    res.json(predictions);
+    res.status(200).json({ success: true, data: predictions });
   } catch (error) {
-    res.status(400).json({ error: "Failed to fetch predictions" });
+    next(error);
   }
 };
 
-export const addPrediction = async (req: AuthRequest, res: Response) => {
+export const addPrediction = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -48,8 +48,8 @@ export const addPrediction = async (req: AuthRequest, res: Response) => {
     };
 
     const prediction = await ingestPrediction(predictionPayload);
-    res.status(201).json(prediction);
+    res.status(201).json({ success: true, message: "Prediction added successfully", data: prediction });
   } catch (error) {
-    res.status(400).json({ error: "Failed to add prediction" });
+    next(error);
   }
 };
