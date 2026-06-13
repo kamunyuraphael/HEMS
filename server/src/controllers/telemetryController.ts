@@ -14,7 +14,7 @@ interface AuthenticateRequest extends Request {
  * GET /api/telemetry?interval=raw
  */
 export const getTelemetry = async (
-  req: AuthenticateRequest, 
+  req: AuthenticateRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -25,7 +25,8 @@ export const getTelemetry = async (
       return;
     }
 
-    const interval = typeof req.query.interval === "string" ? req.query.interval : undefined;
+    const interval =
+      typeof req.query.interval === "string" ? req.query.interval : undefined;
 
     const filter = {
       user: new Types.ObjectId(userId),
@@ -33,17 +34,17 @@ export const getTelemetry = async (
     };
 
     const telemetry = await Telemetry.find(filter)
-    .sort({ timestamp: -1 })
-    .limit(100)
-    .lean();
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .lean();
 
     res.status(200).json({
       success: true,
       count: telemetry.length,
-      data: telemetry
+      data: telemetry,
     });
   } catch (error) {
-    next(error); // Passes securely to the centralized errorHanler middleware
+    next(error);
   }
 };
 
@@ -52,8 +53,8 @@ export const getTelemetry = async (
  * POST /api/telemetry
  */
 export const addTelemetry = async (
-  req: AuthenticateRequest, 
-  res: Response, 
+  req: AuthenticateRequest,
+  res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
@@ -63,12 +64,14 @@ export const addTelemetry = async (
       return;
     }
 
-    // Capture incoming structural metrics safely from body
     const { device, watts, kWh, interval } = req.body;
 
     const existingDevice = await Device.findById(device);
     if (!existingDevice || existingDevice.owner.toString() !== userId) {
-      res.status(403).json({ success: false, error: "Device does not belong to authenticated user" });
+      res.status(403).json({
+        success: false,
+        error: "Device does not belong to authenticated user",
+      });
       return;
     }
 
@@ -83,9 +86,74 @@ export const addTelemetry = async (
     await telemetry.save();
 
     res.status(201).json({
-      success: true, 
-      data: telemetry
-      });
+      success: true,
+      data: telemetry,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * CATEGORY CONSUMPTION BREAKDOWN
+ * GET /api/telemetry/breakdown?interval=daily
+ */
+export const getCategoryBreakdown = async (
+  req: AuthenticateRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Unauthorized access" });
+      return;
+    }
+
+    const interval =
+      typeof req.query.interval === "string" ? req.query.interval : "daily";
+
+    const breakdown = await Telemetry.aggregate([
+      {
+        $match: {
+          user: new Types.ObjectId(userId),
+          interval,
+        },
+      },
+      {
+        $lookup: {
+          from: "devices",
+          localField: "device",
+          foreignField: "_id",
+          as: "deviceInfo",
+        },
+      },
+      { $unwind: "$deviceInfo" },
+      {
+        $group: {
+          _id: "$deviceInfo.category",
+          totalKWh: { $sum: "$kWh" },
+          totalWatts: { $sum: "$watts" },
+          readingCount: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          totalKWh: 1,
+          totalWatts: 1,
+          readingCount: 1,
+        },
+      },
+      { $sort: { totalKWh: -1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: breakdown.length,
+      data: breakdown,
+    });
   } catch (error) {
     next(error);
   }
