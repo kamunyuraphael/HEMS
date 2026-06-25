@@ -26,6 +26,8 @@ import {
   idParamSchema,
 } from "../validation/schemas.js";
 
+import exportRoutes from './exportRoutes.js';
+
 const router = Router();
 
 /* ---------------- AUTH ROUTES ---------------- */
@@ -57,5 +59,8 @@ router.post(
 
 /* ---------------- ALERT ROUTES ---------------- */
 router.get("/alerts", authMiddleware, getAlerts);
+
+/* ---------------- EXPORT ROUTES ---------------- */
+router.use("/export", exportRoutes);
 
 export default router;

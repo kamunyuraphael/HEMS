@@ -10,6 +10,8 @@ export interface IPrediction extends Document {
   timestamp: Date;               // When prediction was made
   targetDate: Date;              // Future date the prediction applies to
   anomalyDetails?: string;       // Extra info if anomaly detected
+  createdAt: Date;               // When the document was created
+  updatedAt: Date;               // When the document was last updated
 }
 
 const predictionSchema = new Schema<IPrediction>(
